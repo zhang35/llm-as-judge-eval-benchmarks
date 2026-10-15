@@ -1,0 +1,159 @@
+# GEMINI.md — LLM-as-a-Judge & LLM Evaluation Benchmarks
+
+## Project & Directory Overview
+
+`llm-as-judge-eval-benchmarks` is a curated repository of benchmark datasets and evaluation suites for assessing **LLM-as-a-Judge systems**, **Reward Models**, and core **Large Language Model (LLM)** capabilities across diverse domains:
+
+1. **Meta-Evaluation (LLM-as-a-Judge & Reward Models):** Pairwise preference evaluation, objective correctness judging, and human judgment alignment (`JudgeBench`, `mt_bench_human_judgments`, `reward-bench`).
+2. **Instruction & Constraint Following:** Heuristic, multi-level constraint satisfaction, and multi-turn conversation challenges (`IFEval`, `FollowBench`, `MultiChallenge`).
+3. **Factuality, NLI & Hallucination Detection:** Grounded fact verification, contract NLI, and hallucination recognition across QA, dialogue, summarization, and legal documents (`HaluEval`, `LLM-AggreFact`, `ContractNLI`).
+4. **Safety, Moderation & Privacy (PII):** Harmfulness and refusal classification under vanilla and adversarial prompts (`wildguardmix`), and multilingual financial PII detection/redaction (`synthetic_pii_finance_multilingual`).
+5. **Tool Use, SQL, Legal & Financial Domain QA:** Multi-turn/parallel function calling (`BFCL`), Text-to-SQL generation (`bird_mini_dev`), legal contract review (`CUAD_v1`), and financial numerical reasoning (`flare-finqa`).
+
+Most subdirectories under `benchmarks/` are local snapshots of Hugging Face dataset repositories (storing data in `.parquet`, `.json`, `.jsonl`, or `.sql`/SQLite formats) alongside their dataset cards (`README.md`). Notably, `benchmarks/IFEval/instruction_following_eval/` includes a complete Python evaluation package.
+
+---
+
+## Directory Structure & Key Files
+
+All benchmarks reside under `benchmarks/`:
+
+### 1. Judge & Preference Evaluation
+* **`benchmarks/JudgeBench/`**
+  * **Purpose:** Evaluates LLM-based judges on challenging response pairs with objective correctness labels (`A>B` or `B>A`) spanning knowledge, reasoning, math, and coding.
+  * **Key Files:** `data/gpt-00000-of-00001.jsonl` (350 GPT-4o pairs), `data/claude-00000-of-00001.jsonl` (270 Claude-3.5-Sonnet pairs).
+  * **Schema:** `pair_id`, `original_id`, `source`, `question`, `response_model`, `response_A`, `response_B`, `label`.
+* **`benchmarks/mt_bench_human_judgments/`**
+  * **Purpose:** 3.3K expert-level pairwise human preference judgments and 2.4K GPT-4 pairwise judgments on multi-turn MT-Bench questions across 6 models, used to measure human vs. LLM-judge agreement.
+  * **Key Files:** `data/human-00000-of-00001-25f4910818759289.parquet`, `data/gpt4_pair-00000-of-00001-c0b431264a82ddc0.parquet`.
+  * **Schema:** `question_id`, `model_a`, `model_b`, `winner`, `judge`, `conversation_a`, `conversation_b`, `turn`.
+* **`benchmarks/reward-bench/`**
+  * **Purpose:** Evaluates reward models and judges across Chat, Chat Hard, Safety, and Reasoning categories by comparing `chosen` vs. `rejected` responses for a given `prompt`.
+  * **Key Files:** `data/filtered-00000-of-00001.parquet`, `data/raw-00000-of-00001.parquet`, `data/train-00000-of-00001.parquet`, plus raw refusal completions in `raw/`.
+  * **Schema:** `id`, `prompt`, `chosen`, `chosen_model`, `rejected`, `rejected_model`, `subset`.
+
+### 2. Instruction & Constraint Following
+* **`benchmarks/IFEval/`**
+  * **Purpose:** Evaluates ~500 verifiable instructions (e.g., word counts, keyword frequency, formatting, punctuation constraints) using deterministic Python heuristics.
+  * **Key Files:**
+    * `ifeval_input_data.jsonl` & `instruction_following_eval/data/input_data.jsonl`: Input prompts and verifiable constraint specifications (`key`, `prompt`, `instruction_id_list`, `kwargs`).
+    * `instruction_following_eval/`: Python package containing `evaluation_main.py`, `evaluation_lib.py`, `instructions.py`, `instructions_registry.py`, `instructions_util.py`, and unit tests (`*_test.py`).
+* **`benchmarks/FollowBench/`**
+  * **Purpose:** Multi-level (Levels 1–5) fine-grained constraint-following benchmark in English and Chinese across 5 constraint categories.
+  * **Key Files:** `data_en/` and `data_zh/` containing `content_constraints.json`, `example_constraints.json`, `format_constraints.json`, `mixed_constraints.json`, `situation_constraints.json`, and `style_constraints.json`.
+* **`benchmarks/MultiChallenge/`**
+  * **Purpose:** Evaluates LLMs on multi-turn conversation challenges (`ScaleAI/MultiChallenge`), testing context maintenance, instruction retention, inference memory, and self-coherence across extended dialogues.
+  * **Key Files:** `data/test-00000-of-00001.parquet` (266 multi-turn instances).
+  * **Schema:** `question_id`, `axis`, `conversation`, `target_question`, `pass_criteria`, `num_turns`.
+
+### 3. Factuality, NLI & Hallucination Detection
+* **`benchmarks/HaluEval/`**
+  * **Purpose:** Hallucination evaluation benchmark containing generated and human-annotated hallucinated responses across dialogue, QA, summarization, and general queries.
+  * **Key Files:** Parquet datasets organized by task split: `dialogue/`, `dialogue_samples/`, `general/`, `qa/`, `qa_samples/`, `summarization/`, `summarization_samples/`.
+* **`benchmarks/LLM-AggreFact/`**
+  * **Purpose:** Fact verification benchmark aggregating 11 factual consistency datasets (including RAGTruth, FactCheck-GPT, Wice, Reveal, TofuEval, etc.) from the MiniCheck paper.
+  * **Key Files:** `data/test-00000-of-00001.parquet`.
+  * **Schema:** `dataset`, `doc` (grounding document), `claim` (claim to verify), `label` (`1` supported, `0` unsupported), `contamination_identifier`.
+* **`benchmarks/ContractNLI/`**
+  * **Purpose:** Document-level Natural Language Inference (NLI) dataset for Non-Disclosure Agreements (NDAs) (`kiddothe2b/contract-nli` / Stanford NLP), classifying whether hypotheses are entailed by, contradicted by, or neutral (not mentioned) with respect to a contract.
+  * **Key Files:** `test.json` (official Stanford NLP ContractNLI test split with document text, hypothesis templates, and span/NLI annotations).
+
+### 4. Safety, Guardrails & Privacy (PII)
+* **`benchmarks/wildguardmix/`**
+  * **Purpose:** Evaluates moderation and safety classifiers across three tasks: prompt harmfulness, response harmfulness, and response refusal (`vanilla` and `adversarial` prompts).
+  * **Key Files:** `test/wildguard_test.parquet` (1,725 test items with human annotator agreement metadata).
+  * **Schema:** `prompt`, `adversarial`, `response`, `prompt_harm_label`, `response_harm_label`, `response_refusal_label`, `subcategory`.
+* **`benchmarks/synthetic_pii_finance_multilingual/`**
+  * **Purpose:** Gretel AI synthetic financial documents (`gretelai/synthetic_pii_finance_multilingual`) annotated with PII spans and LLM-as-a-Judge quality metrics.
+  * **Key Files:** `data/English_test-00000-of-00001.parquet`.
+  * **Schema:** `document_type`, `document_description`, `expanded_type`, `expanded_description`, `language`, `domain`, `generated_text`, `pii_spans`, `conformance_score`, `quality_score`, `toxicity_score`, `bias_score`, `groundedness_score`.
+
+### 5. Function Calling, SQL, Legal & Financial Domain QA
+* **`benchmarks/BFCL/` (Berkeley Function Calling Leaderboard v3)**
+  * **Purpose:** Evaluates single-turn, parallel, multiple, irrelevance/relevance, live, and multi-turn tool/function calling across Python, Java, JavaScript, REST, and SQL.
+  * **Key Files:**
+    * `BFCL_v3_*.json`: Line-delimited JSON (JSONL) test prompts and tool definitions.
+    * `possible_answer/BFCL_v3_*.json`: Ground-truth function call answers corresponding to the test files.
+    * `multi_turn_func_doc/*.json`: API documentation for multi-turn environments (`gorilla_file_system`, `trading_bot`, `travel_booking`, `vehicle_control`, etc.).
+* **`benchmarks/bird_mini_dev/` (BIRD-SQL Mini-Dev)**
+  * **Purpose:** 500 high-quality Text-to-SQL pairs across 11 development databases supporting SQLite, MySQL, and PostgreSQL dialects.
+  * **Key Files:**
+    * `data/mini_dev_{sqlite,mysql,pg}-00000-of-00001.json`
+    * `minidev/MINIDEV/dev_tables.json`, `mini_dev_{sqlite,mysql,postgresql}.json`, `mini_dev_{sqlite,mysql,postgresql}_gold.sql`
+    * `minidev/MINIDEV/dev_databases/`: 11 local database directories (`california_schools`, `card_games`, `codebase_community`, `debit_card_specializing`, `european_football_2`, `financial`, `formula_1`, `student_club`, `superhero`, `thrombosis_prediction`, `toxicology`).
+* **`benchmarks/CUAD_v1/` (Contract Understanding Atticus Dataset v1)**
+  * **Purpose:** Legal contract review benchmark (`theatticusproject/cuad`) evaluating extractive question answering and clause identification across 41 legal clause categories.
+  * **Key Files:** `test.json` (SQuAD 2.0-style test split) and `category_descriptions.csv` (descriptions of the 41 legal clause categories).
+* **`benchmarks/flare-finqa/`**
+  * **Purpose:** Financial numerical reasoning and question-answering benchmark.
+  * **Key Files:** `data/test-00000-of-00001-5ed0ee6b1f761c33.parquet` (`id`, `query`, `answer`, `text`).
+
+---
+
+## Building, Running, and Usage
+
+### Running the IFEval Evaluation Suite
+
+`benchmarks/IFEval/` includes an executable Python evaluation pipeline.
+
+1. **Install Dependencies:**
+   ```bash
+   cd benchmarks/IFEval/instruction_following_eval
+   pip3 install -r requirements.txt
+   ```
+   *(Dependencies: `absl-py`, `langdetect`, `nltk`, `immutabledict`)*
+
+2. **Run Evaluation:**
+   Execute `evaluation_main` from `benchmarks/IFEval/` (the parent directory of `instruction_following_eval`):
+   ```bash
+   cd benchmarks/IFEval
+   python3 -m instruction_following_eval.evaluation_main \
+     --input_data=./instruction_following_eval/data/input_data.jsonl \
+     --input_response_data=./instruction_following_eval/data/input_response_data_gpt4_20231107_145030.jsonl \
+     --output_dir=./instruction_following_eval/data/
+   ```
+   Or run the provided shell script from `benchmarks/IFEval/`:
+   ```bash
+   bash instruction_following_eval/run.sh
+   ```
+   This outputs both `eval_results_strict.jsonl` and `eval_results_loose.jsonl` in `--output_dir`.
+
+3. **Run Unit Tests:**
+   ```bash
+   cd benchmarks/IFEval
+   python3 -m unittest discover -s instruction_following_eval -p "*_test.py"
+   ```
+
+### Loading Benchmark Datasets in Python
+
+* **Parquet Files (`flare-finqa`, `HaluEval`, `LLM-AggreFact`, `mt_bench_human_judgments`, `reward-bench`, `wildguardmix`):**
+  Load directly with `pandas` or Hugging Face `datasets` without needing internet access:
+  ```python
+  import pandas as pd
+  df = pd.read_parquet("benchmarks/reward-bench/data/filtered-00000-of-00001.parquet")
+  ```
+* **BFCL JSON Files (`benchmarks/BFCL/`):**
+  **Important:** Although BFCL files have a `.json` extension, they are formatted as **line-delimited JSON (JSONL)** and are not directly compatible with `huggingface/datasets` `load_dataset` without custom loading. Load them line-by-line:
+  ```python
+  import json
+
+  def load_bfcl_file(file_path: str) -> list[dict]:
+      with open(file_path, "r", encoding="utf-8") as f:
+          return [json.loads(line) for line in f]
+  ```
+* **Standard JSON / JSONL Files (`FollowBench`, `bird_mini_dev`, `JudgeBench`, `IFEval`):**
+  * `FollowBench` and `bird_mini_dev` `.json` files are standard JSON arrays/objects (`json.load(f)`).
+  * `JudgeBench` and `IFEval` `.jsonl` files are standard JSON Lines (`[json.loads(line) for line in f]`).
+
+---
+
+## Development Conventions & Guidelines
+
+1. **Preserve Benchmark Data Integrity:**
+   * Treat all dataset files under `benchmarks/` (`.parquet`, `.json`, `.jsonl`, `.sql`, and SQLite databases) as **read-only ground truth**. Do not modify, reformat, or overwrite benchmark data files unless explicitly instructed.
+   * Ignore `.cache/` directories inside benchmark folders during searches or code analysis—they contain Hugging Face download metadata and hashes.
+2. **Contamination Prevention:**
+   * Several benchmarks (e.g., `LLM-AggreFact`, `wildguardmix`) contain gated evaluation data or explicit `contamination_identifier` strings. Never log large portions of test sets into public artifacts or use test splits for model fine-tuning.
+3. **Code Style (Python):**
+   * Code inside `benchmarks/IFEval/instruction_following_eval/` follows Google Python Style Guide conventions (2-space indentation, `absl.app` / `absl.flags` for CLI entrypoints, `absltest` / `unittest` for testing, and type annotations).
+   * Any new evaluation scripts added at the root or benchmark level should use standard 4-space PEP 8 formatting unless modifying Google-style modules directly in `IFEval`.

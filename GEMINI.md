@@ -8,7 +8,7 @@
 2. **Instruction & Constraint Following:** Heuristic, multi-level constraint satisfaction, and multi-turn conversation challenges (`IFEval`, `FollowBench`, `MultiChallenge`).
 3. **Factuality, NLI & Hallucination Detection:** Grounded fact verification, contract NLI, and hallucination recognition across QA, dialogue, summarization, and legal documents (`HaluEval`, `LLM-AggreFact`, `ContractNLI`).
 4. **Safety, Moderation & Privacy (PII):** Harmfulness and refusal classification under vanilla and adversarial prompts (`wildguardmix`), and multilingual financial PII detection/redaction (`synthetic_pii_finance_multilingual`).
-5. **Tool Use, SQL, Code, Legal & Financial Domain QA:** Dynamic tool-agent-user interaction (`tau-bench`), complex Python code generation (`bigcodebench`), multi-turn/parallel function calling (`BFCL`), Text-to-SQL generation (`bird_mini_dev`), legal contract review (`CUAD_v1`), and financial numerical reasoning (`flare-finqa`).
+5. **Tool Use, SQL, Code, Legal & Financial Domain QA:** Dynamic tool-agent-user interaction and multi-domain evaluation (`tau2-bench`), complex Python code generation (`bigcodebench`), multi-turn/parallel function calling (`BFCL`), Text-to-SQL generation (`bird_mini_dev`), legal contract review (`CUAD_v1`), and financial numerical reasoning (`flare-finqa`).
 
 Most subdirectories under `benchmarks/` are local snapshots of Hugging Face dataset repositories (storing data in `.parquet`, `.json`, `.jsonl`, or `.sql`/SQLite formats) alongside their dataset cards (`README.md`). Notably, `benchmarks/IFEval/instruction_following_eval/` includes a complete Python evaluation package.
 
@@ -79,9 +79,9 @@ All benchmarks reside under `benchmarks/`:
     * `BFCL_v3_*.json`: Line-delimited JSON (JSONL) test prompts and tool definitions.
     * `possible_answer/BFCL_v3_*.json`: Ground-truth function call answers corresponding to the test files.
     * `multi_turn_func_doc/*.json`: API documentation for multi-turn environments (`gorilla_file_system`, `trading_bot`, `travel_booking`, `vehicle_control`, etc.).
-* **`benchmarks/tau-bench/` (τ-bench)**
-  * **Purpose:** Dynamic conversational agent benchmark simulating multi-turn interactions between simulated users and language agents provided with domain-specific API tools and policy rules across Airline and Retail domains.
-  * **Key Files:** `tau_bench/envs/airline/`, `tau_bench/envs/retail/`, `few_shot_data/`, `historical_trajectories/`, `run.py`, `setup.py`.
+* **`benchmarks/tau2-bench/` (τ²-bench / τ³-bench)**
+  * **Purpose:** Advanced agent evaluation benchmark emulating dynamic conversations between language agents and users in real-world domains. Features expanded environments (airline, retail, telecom domains), voice evaluation modality, policy guidelines, and comprehensive benchmark trajectory evaluations.
+  * **Key Files:** `src/tau2/`, `data/tau2/domains/` (airline, retail, telecom), `data/tau2/results/`, `data/voice/`, `pyproject.toml`, `README.md`.
 * **`benchmarks/bigcodebench/`**
   * **Purpose:** Rigorous benchmark for code generation and instruction following across 1,140 challenging Python programming tasks (`BigCodeBench-Complete` and `BigCodeBench-Instruct`), evaluating complex reasoning and multiple library dependencies. Includes the official calibrated model generation samples archive (`sanitized_samples_calibrated.zip`).
   * **Key Files:** `data/train-00000-of-00001.parquet`, `data/v0.1.0-00000-of-00001.parquet` through `v0.1.4`, `sanitized_samples_calibrated.zip`, `sanitized_calibrated_samples.zip`.

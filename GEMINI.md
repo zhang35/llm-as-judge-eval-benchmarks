@@ -36,9 +36,9 @@ All benchmarks reside under `benchmarks/`:
   * **Key Files:** `EVOUNA/NQ.json`, `EVOUNA/TQ.json`, `lexical_match.py`.
   * **Schema:** `question`, `golden_answer`, `answer_{fid,gpt35,chatgpt,gpt4,newbing}`, `judge_{fid,gpt35,chatgpt,gpt4,newbing}`, `improper`.
 * **`benchmarks/agent-reward-bench/`**
-  * **Purpose:** Evaluates automatic evaluations and reward models on 1,302 web agent trajectories (`McGill-NLP/agent-reward-bench`) across AssistantBench, VisualWebArena, WebArena, and WorkArena (`screenshots/` and `judgments/` excluded).
-  * **Key Files:** `cleaned/{assistantbench,visualwebarena,webarena,workarena}/` (1,302 cleaned trajectory `.json` files), `data/annotations.csv`, `data/splits.csv`, `data/*.csv`, `data/*.task_ids.json`.
-  * **Schema:** Annotations (`annotator_name`, `benchmark`, `task_id`, `model_name`, `exp_name`, `trajectory_success`, `trajectory_side_effect`, `trajectory_optimality`, `trajectory_looping`); Trajectories (`benchmark`, `agent`, `model`, `valid`, `experiment`, `goal`, `seed`, `model_args`, `flags`, `summary_info`, `package_version`, `steps`).
+  * **Purpose:** Evaluates automatic evaluations and reward models on 1,302 web agent trajectories (`McGill-NLP/agent-reward-bench`) across AssistantBench, VisualWebArena, WebArena, and WorkArena (`screenshots/` and `judgments/` excluded; slimmed to text-judge relevant fields via `slim_agent_reward_bench.py`).
+  * **Key Files:** `cleaned/{assistantbench,visualwebarena,webarena,workarena}/` (1,302 slimmed trajectory `.json` files, ~25MB total), `data/annotations.csv`, `data/splits.csv`, `data/*.csv`, `data/*.task_ids.json`.
+  * **Schema:** Annotations (`annotator_name`, `benchmark`, `task_id`, `model_name`, `exp_name`, `trajectory_success`, `trajectory_side_effect`, `trajectory_optimality`, `trajectory_looping`); Trajectories (`benchmark`, `agent`, `model`, `valid`, `experiment`, `goal`, `seed`, `summary_info`, `steps`, `num_steps`, `last_axtree`, `last_screenshot_path`).
 
 ### 2. Instruction & Constraint Following
 * **`benchmarks/IFEval/`**

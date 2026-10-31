@@ -1,5 +1,2 @@
 .DS_Store
 
-# AgentRewardBench trajectory dataset (>28GB, exceeds GitHub file size limits)
-benchmarks/agent-reward-bench/cleaned/
-
